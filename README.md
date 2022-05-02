@@ -1,5 +1,5 @@
 # MPI-Parallel-Processing
-CMPE 273
+CMPE 275
 
 1. Compile : 
 `mpicc MPI.c -o mpitest`
