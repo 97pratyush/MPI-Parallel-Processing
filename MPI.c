@@ -3,7 +3,55 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <time.h>
     
+int updateValueInFile(int valueToUpdate) {
+    printf("\n----------- RUNNING getUpdatedValue() ------------\n");
+    int num = valueToUpdate;
+    FILE *fptr;
+
+    char * line = NULL;
+    size_t len = 0;
+    ssize_t read;
+
+    fptr = fopen("./statsfile.txt","r");
+
+    if(fptr == NULL)
+    {
+        printf("File does not exist!\n");   
+        // exit(1);     
+
+        fptr = fopen("./statsfile.txt","w");
+        fprintf(fptr,"%d",num);
+        fclose(fptr);
+        printf("File created and number %d written to file\n", num);
+        return num;        
+    } else {
+
+        int numReadFromFile = 0;
+        while ((read = getline(&line, &len, fptr)) != -1) {
+            // printf("Retrieved line of length %zu:\n", read);
+            // printf("%s\n", line);
+
+            numReadFromFile = atoi(line);
+            printf("numReadFromFile = %d\n", numReadFromFile);
+        }
+        fclose(fptr);
+
+        int newNum = numReadFromFile + valueToUpdate;
+        fptr = fopen("./statsfile.txt","w");
+        fprintf(fptr,"%d", (newNum));
+        printf("Updated number in the file to %d\n", newNum);
+        printf("\nClosing file!\n");
+        fclose(fptr);
+
+        num = newNum;
+    }
+    
+    printf("\n----------- COMPLETED getUpdatedValue() ------------\n");
+    return num;
+}
+
 void processFile(MPI_File *in, MPI_File *out, const int rank, const int size, const int overlap) {
     MPI_Offset globalstart;
     int mysize;
@@ -45,12 +93,27 @@ void processFile(MPI_File *in, MPI_File *out, const int rank, const int size, co
     
     // int counter[3];
 
+
+
+    int count_a = 0;
+
     for (int i=locstart; i<=locend; i++) {
         char c = chunk[i];
         chunk[i] = ( isspace(c) ? c : '1' + (char)rank );
+        // chunk[i] = c;
+
+        // if (c == 'a') {
+        //     count_a++;
+        // }
+
+        count_a++;
 
         // counter[rank] += isspace(c) ? 0 : 1;
     }
+
+    printf("Count of characters: %d \n", count_a);
+    // int a = updateValueInFile(count_a);
+    // printf("\n\nUPDATED VALUE IN FILE: %d\n\n", a);
 
     // for(int i=0; i<3; i++) {
     //   printf("%d \n", counter[i]);
@@ -62,8 +125,7 @@ void processFile(MPI_File *in, MPI_File *out, const int rank, const int size, co
     return;
 }
     
-int main(int argc, char **argv) {
-    
+void mpiProcess(int argc, char **argv) {
     MPI_File in, out;
     int rank, size;
     int ierr;
@@ -93,11 +155,22 @@ int main(int argc, char **argv) {
         exit(3);
     }
     
+    clock_t start = clock();
     processFile(&in, &out, rank, size, overlap);
+    clock_t end = clock();
+
+    printf("Elapsed: %f seconds\n", (double)(end - start) / CLOCKS_PER_SEC);
     
     MPI_File_close(&in);
     MPI_File_close(&out);
     
     MPI_Finalize();
+    // return 0;
+    return;
+}    
+
+int main(int argc, char **argv) {
+    mpiProcess(argc, argv);
+    printf("MPI Done!");
     return 0;
 }

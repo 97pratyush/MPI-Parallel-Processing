@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
   
     // Check if file exists
     if (fp == NULL) {
-        printf("Could not open file %s");
+        printf("Could not open file");
         return 0;
     }
   
@@ -29,7 +29,8 @@ int main(int argc, char *argv[])
     for (c = getc(fp); c != EOF; c = getc(fp))
   
         // Increment count for this character
-        if((c < 97 || c > 122) && !isspace(c)) count++;
+        // if((c < 97 || c > 122) && !isspace(c)) count++;
+        count++;
   
     // Close the file
     fclose(fp);
